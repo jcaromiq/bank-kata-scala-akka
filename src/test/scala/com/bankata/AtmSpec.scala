@@ -3,7 +3,7 @@ package com.bankata
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{TestActorRef, TestKit, TestProbe}
 import com.bankkata.ATMActor.{InsertCard, InsertPin}
-import com.bankkata.PrinterActor.{DisplayMessage, InsertPinMessage, WelcomeMessage}
+import com.bankkata.PrinterActor.{DisplayMessage, InsertPinMessage, InvalidPinMessage, WelcomeMessage}
 import com.bankkata.{ATMActor, AccountActor, Deposit, PrinterActor, Withdraw}
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -46,6 +46,17 @@ class AtmSpec(_system: ActorSystem)
         case msg @ WelcomeMessage() => msg
       }
       msg should be(WelcomeMessage())
+    }
+
+    "display error message when pin is incorrect" in {
+      atm ! InsertCard("1234567")
+
+      atm ! InsertPin("111")
+
+      val msg = printer.fishForSpecificMessage() {
+        case msg @ InvalidPinMessage() => msg
+      }
+      msg should be(InvalidPinMessage())
     }
 
   }
