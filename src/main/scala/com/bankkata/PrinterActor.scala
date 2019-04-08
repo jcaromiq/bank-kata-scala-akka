@@ -11,6 +11,7 @@ object PrinterActor {
   case class WelcomeMessage()
   case class InvalidPinMessage()
   case class DepositSuccess()
+  case class CardRejected()
 }
 
 class PrinterActor() extends Actor {

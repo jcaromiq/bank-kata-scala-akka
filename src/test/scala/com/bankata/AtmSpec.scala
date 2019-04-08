@@ -3,7 +3,14 @@ package com.bankata
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{TestActorRef, TestKit, TestProbe}
 import com.bankkata.ATMActor.{InsertCard, InsertPin}
-import com.bankkata.PrinterActor.{DepositSuccess, DisplayMessage, InsertPinMessage, InvalidPinMessage, WelcomeMessage}
+import com.bankkata.PrinterActor.{
+  CardRejected,
+  DepositSuccess,
+  DisplayMessage,
+  InsertPinMessage,
+  InvalidPinMessage,
+  WelcomeMessage
+}
 import com.bankkata.{ATMActor, AccountActor, Deposit, PrinterActor, Withdraw}
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -68,6 +75,19 @@ class AtmSpec(_system: ActorSystem)
         case msg @ DepositSuccess() => msg
       }
       msg should be(DepositSuccess())
+    }
+
+    "reject the card once the pin has been entered three times incorrectly" in {
+      atm ! InsertCard("1234567")
+
+      atm ! InsertPin("111")
+      atm ! InsertPin("333")
+      atm ! InsertPin("555")
+
+      printer.expectMsg(InsertPinMessage())
+      printer.expectMsg(InvalidPinMessage())
+      printer.expectMsg(InvalidPinMessage())
+      printer.expectMsg(CardRejected())
     }
 
   }
