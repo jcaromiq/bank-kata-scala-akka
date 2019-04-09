@@ -81,11 +81,12 @@ class AtmSpec(_system: ActorSystem)
       atm ! InsertCard("1234567")
 
       atm ! InsertPin("111")
-      atm ! InsertPin("333")
-      atm ! InsertPin("555")
-
       printer.expectMsg(InsertPinMessage())
+
+      atm ! InsertPin("333")
       printer.expectMsg(InvalidPinMessage())
+
+      atm ! InsertPin("555")
       printer.expectMsg(InvalidPinMessage())
       printer.expectMsg(CardRejected())
     }

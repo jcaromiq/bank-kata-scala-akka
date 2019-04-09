@@ -18,34 +18,32 @@ object ATMActor {
 
 }
 class ATMActor(printer: ActorRef) extends Actor with ActorLogging {
-  var card: String = _
   var accountRef: ActorRef = _
 
   override def receive: Receive = WithoutCard()
 
   def WithoutCard(): Receive = {
-    case InsertCard(insertedCard) =>
-      this.card = insertedCard
+    case InsertCard(cardInserted) =>
       printer ! InsertPinMessage()
-      context become WithCardInserted(1)
+      context become WithCardInserted(cardInserted, 1)
   }
 
-  def WithCardInserted(numRetry: Int): Receive = {
+  def WithCardInserted(card: String, numRetry: Int): Receive = {
     case InsertPin(pin) =>
       if (card.substring(0, 3).equals(pin)) {
         printer ! WelcomeMessage()
         accountRef = context.actorOf(Props[AccountActor])
-        context become WithAuthenticated()
+        context become WithAuthenticated(card)
       } else if (numRetry == 3) {
         printer ! CardRejected()
         context become WithoutCard
       } else {
         printer ! InvalidPinMessage()
-        context become WithCardInserted(numRetry + 1)
+        context become WithCardInserted(card, numRetry + 1)
       }
   }
 
-  def WithAuthenticated(): Receive = {
+  def WithAuthenticated(card: String): Receive = {
     case Deposit(amount) =>
       accountRef ! Deposit(amount)
       printer ! DepositSuccess()
